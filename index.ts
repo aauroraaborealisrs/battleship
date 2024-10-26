@@ -1,5 +1,6 @@
 import { WebSocketServer } from "ws";
 import { httpServer } from "./src/http_server";
+import { handleMessage } from "./src/handlers/handleMessage";
 
 const HTTP_PORT = 3000;
 export const wss = new WebSocketServer({ server: httpServer });
@@ -11,6 +12,7 @@ wss.on("connection", (ws) => {
     try {
       const message = JSON.parse(data.toString());
       console.log("Message received:", message);
+      handleMessage(ws, message);
     } catch (error) {
       console.error("Message parsing error:", error);
       ws.send(JSON.stringify({ error: "Invalid message format" }));
