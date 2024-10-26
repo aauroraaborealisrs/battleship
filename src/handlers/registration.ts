@@ -1,5 +1,7 @@
 import { WebSocket } from "ws";
-import { addPlayer, getPlayersList, playerExists } from "../playersdb";
+import { addPlayer, playerExists } from "../playersdb";
+import { updateWinners } from "../utils/updateWinners";
+import { playerInfo } from "../roomsdb";
 
 export default function handleRegistration(
   ws: WebSocket,
@@ -47,8 +49,10 @@ export default function handleRegistration(
     }
 
     addPlayer(name, password, ws);
+
+    const index = `player_${Math.floor(Math.random() * 100000)}`;
+    playerInfo.set(ws, { name, index });
     console.log(`Игрок ${name} успешно зарегистрирован.`);
-    console.log("Текущие игроки:", getPlayersList());
 
     ws.send(
       JSON.stringify({
@@ -62,6 +66,8 @@ export default function handleRegistration(
         id: 0,
       }),
     );
+
+    updateWinners();
   } else {
     ws.send(
       JSON.stringify({

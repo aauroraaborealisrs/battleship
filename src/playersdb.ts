@@ -1,6 +1,5 @@
 import WebSocket from "ws";
 
-// Создаем базу данных игроков в памяти с использованием Map
 const players = new Map<
   string,
   { password: string; wins: number; ws: WebSocket }
@@ -20,6 +19,13 @@ export function playerExists(name: string) {
 
 export function getPlayersList() {
   return Array.from(players.keys());
+}
+
+export function getWinnersList() {
+  return Array.from(players.entries()).map(([name, { wins }]) => ({
+    name,
+    wins,
+  }));
 }
 
 export default players;
