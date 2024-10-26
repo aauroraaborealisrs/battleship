@@ -1,4 +1,5 @@
-import { addUserToRoom, createRoom } from "../roomsdb";
+import { createRoom } from "../roomsdb";
+import { addUserToRoom } from "./addUserToRoom";
 import handleRegistration from "./registration";
 
 export function handleMessage(ws: WebSocket, message: any) {
@@ -10,11 +11,19 @@ export function handleMessage(ws: WebSocket, message: any) {
       createRoom(ws);
       break;
     case "add_user_to_room":
-      if (message.data && message.data.indexRoom) {
-        addUserToRoom(message.data.indexRoom, ws);
-      } else {
-        ws.send(JSON.stringify({ error: "Invalid room ID" }));
+      let data;
+      try {
+        data =
+          typeof message.data === "string"
+            ? JSON.parse(message.data)
+            : message.data;
+      } catch (error) {
+        console.error("Error parsing message data:", error);
+        ws.send(JSON.stringify({ error: "Invalid data format" }));
+        return;
       }
+
+      addUserToRoom(data.indexRoom, ws);
       break;
     default:
       ws.send(JSON.stringify({ error: "Unknown command type" }));

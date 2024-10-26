@@ -1,7 +1,7 @@
 import { WebSocket } from "ws";
 import { addPlayer, playerExists } from "../playersdb";
 import { updateWinners } from "../utils/updateWinners";
-import { playerInfo } from "../roomsdb";
+import { notifyRoomUpdate, playerInfo } from "../roomsdb";
 
 export default function handleRegistration(
   ws: WebSocket,
@@ -68,6 +68,7 @@ export default function handleRegistration(
     );
 
     updateWinners();
+    notifyRoomUpdate();
   } else {
     ws.send(
       JSON.stringify({
