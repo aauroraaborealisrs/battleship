@@ -1,3 +1,5 @@
+import { getPlayersList } from "../playersdb";
+import { updateWinner } from "../utils/updateWinner";
 import { games } from "./addShips";
 import markSurroundingCellsAsShot from "./markSurroundingCellsAsShot";
 
@@ -180,7 +182,9 @@ export default function handleAttack(
   );
 
   if (allShipsDestroyed) {
-    console.log(`[Info] Player ${indexPlayer} wins the game ${gameId}`);
+    updateWinner(gameId, indexPlayer);
+
+    console.log("getPlayersList", getPlayersList());
     game.players.forEach((player) => {
       player.ws.send(
         JSON.stringify({

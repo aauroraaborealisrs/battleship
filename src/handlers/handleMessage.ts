@@ -1,4 +1,5 @@
 import { createRoom } from "../roomsdb";
+import { updateWinner } from "../utils/updateWinner";
 import { addShips } from "./addShips";
 import { addUserToRoom } from "./addUserToRoom";
 import handleAttack, { handleRandomAttack } from "./attack";

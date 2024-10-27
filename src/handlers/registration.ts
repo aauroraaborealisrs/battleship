@@ -15,6 +15,7 @@ export default function handleRegistration(
 
   if (typeof data === "object" && "name" in data && "password" in data) {
     const { name, password } = data;
+    ws["username"] = data.name;
 
     if (!name || !password) {
       ws.send(
