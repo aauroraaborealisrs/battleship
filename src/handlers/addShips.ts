@@ -54,10 +54,10 @@ function startGame(gameId: string) {
     player.ws.send(
       JSON.stringify({
         type: "start_game",
-        data: {
+        data: JSON.stringify({
           ships: player.ships,
           currentPlayerIndex: game.currentTurn,
-        },
+        }),
         id: 0,
       }),
     );

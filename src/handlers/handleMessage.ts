@@ -1,6 +1,7 @@
 import { createRoom } from "../roomsdb";
 import { addShips } from "./addShips";
 import { addUserToRoom } from "./addUserToRoom";
+import handleAttack from "./attack";
 import handleRegistration from "./registration";
 
 export function handleMessage(ws: WebSocket, message: any) {
@@ -43,6 +44,25 @@ export function handleMessage(ws: WebSocket, message: any) {
       console.log(gameId, indexPlayer);
       addShips(gameId, ships, indexPlayer, ws);
       break;
+
+      case "attack":
+        let attackData;
+        try {
+          attackData =
+            typeof message.data === "string"
+              ? JSON.parse(message.data)
+              : message.data;
+        } catch (error) {
+          console.error("Error parsing attack data:", error);
+          ws.send(JSON.stringify({ error: "Invalid data format" }));
+          return;
+        }
+  
+        const { gameId: attackGameId, x, y, indexPlayer: attackingPlayer } = attackData;
+        handleAttack(attackGameId, x, y, attackingPlayer, ws);
+        break;
+
+
     default:
       ws.send(JSON.stringify({ error: "Unknown command type" }));
   }
