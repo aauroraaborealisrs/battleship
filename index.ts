@@ -1,6 +1,9 @@
 import { WebSocketServer } from "ws";
 import { httpServer } from "./src/http_server";
 import { handleMessage } from "./src/handlers/handleMessage";
+import players, { getPlayersList } from "./src/playersdb";
+import { updateWinners } from "./src/utils/updateWinners";
+import { notifyRoomUpdate, rooms } from "./src/roomsdb";
 
 const HTTP_PORT = 3000;
 export const wss = new WebSocketServer({ server: httpServer });
@@ -20,8 +23,35 @@ wss.on("connection", (ws) => {
   });
 
   ws.on("close", () => {
-    console.log("Client disconnected");
+    const playerEntry = Array.from(players.entries()).find(
+      ([, playerData]) => playerData.ws === ws
+    );
+  
+    if (playerEntry) {
+      const [playerName] = playerEntry;
+      console.log(`Client ${playerName} disconnected`);
+      
+      players.delete(playerName);
+      console.log(getPlayersList());
+      updateWinners();
+
+      for (const [roomId, roomData] of rooms.entries()) {
+        const index = roomData.users.indexOf(ws);
+        if (index !== -1) {
+          roomData.users.splice(index, 1);
+          console.log(`Removed disconnected user from room ${roomId}`);
+          
+          if (roomData.users.length === 0) {
+            rooms.delete(roomId);
+            console.log(`Room ${roomId} deleted as it is empty`);
+          }
+        }
+      }
+
+      notifyRoomUpdate();
+    }
   });
+  
 });
 
 export const terminateServer = () => {
