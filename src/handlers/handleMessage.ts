@@ -45,24 +45,28 @@ export function handleMessage(ws: WebSocket, message: any) {
       addShips(gameId, ships, indexPlayer, ws);
       break;
 
-      case "attack":
-        let attackData;
-        try {
-          attackData =
-            typeof message.data === "string"
-              ? JSON.parse(message.data)
-              : message.data;
-        } catch (error) {
-          console.error("Error parsing attack data:", error);
-          ws.send(JSON.stringify({ error: "Invalid data format" }));
-          return;
-        }
-  
-        const { gameId: attackGameId, x, y, indexPlayer: attackingPlayer } = attackData;
-        handleAttack(attackGameId, x, y, attackingPlayer, ws);
-        console.log(attackGameId, x, y);
-        break;
+    case "attack":
+      let attackData;
+      try {
+        attackData =
+          typeof message.data === "string"
+            ? JSON.parse(message.data)
+            : message.data;
+      } catch (error) {
+        console.error("Error parsing attack data:", error);
+        ws.send(JSON.stringify({ error: "Invalid data format" }));
+        return;
+      }
 
+      const {
+        gameId: attackGameId,
+        x,
+        y,
+        indexPlayer: attackingPlayer,
+      } = attackData;
+      handleAttack(attackGameId, x, y, attackingPlayer, ws);
+      console.log(attackGameId, x, y);
+      break;
 
     default:
       ws.send(JSON.stringify({ error: "Unknown command type" }));
