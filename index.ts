@@ -4,6 +4,9 @@ import { handleMessage } from "./src/handlers/handleMessage";
 import players, { getPlayersList } from "./src/playersdb";
 import { updateWinners } from "./src/utils/updateWinners";
 import { notifyRoomUpdate, rooms } from "./src/roomsdb";
+import { activeGames } from "./src/handlers/addUserToRoom";
+import { games } from "./src/handlers/addShips";
+import { updateWinner } from "./src/utils/updateWinner";
 
 const HTTP_PORT = 3000;
 export const wss = new WebSocketServer({ server: httpServer });
@@ -48,6 +51,32 @@ wss.on("connection", (ws) => {
         }
       }
 
+
+      for (const [gameId, gameData] of activeGames.entries()) {
+        if (gameData.player1 === playerName || gameData.player2 === playerName) {
+          const remainingPlayerName = gameData.player1 === playerName ? gameData.player2 : gameData.player1;
+          console.log(`remainingPlayerName ${remainingPlayerName}`);
+          const remainingPlayerData = players.get(remainingPlayerName);
+          updateWinner(gameId, remainingPlayerName === gameData.player1 ? "player_1" : "player_2");
+      
+          if (remainingPlayerData) {
+            remainingPlayerData.ws.send(
+              JSON.stringify({
+                type: "finish",
+                data: JSON.stringify({
+                  winPlayer: remainingPlayerName,
+                }),
+                id: 0,
+              })
+            );
+          }
+  
+          activeGames.delete(gameId);
+          games.delete(gameId);
+          console.log(`Game ${gameId} ended due to player disconnect`);
+        }
+      }
+      
       notifyRoomUpdate();
     }
   });
