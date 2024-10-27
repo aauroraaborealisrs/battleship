@@ -1,6 +1,7 @@
 import { getPlayersList } from "../playersdb";
 import { updateWinner } from "../utils/updateWinner";
 import { games } from "./addShips";
+import { activeGames } from "./addUserToRoom";
 import markSurroundingCellsAsShot from "./markSurroundingCellsAsShot";
 
 export interface Ship {
@@ -197,6 +198,7 @@ export default function handleAttack(
       );
     });
     games.delete(gameId);
+    activeGames.delete(gameId);
     return;
   }
 

@@ -19,6 +19,18 @@ export function addUserToRoom(roomId: string, ws: WebSocket) {
     return;
   }
 
+  const isAlreadyInRoom = room.users.some((user) => user === ws);
+  if (isAlreadyInRoom) {
+    ws.send(
+      JSON.stringify({
+        type: "error",
+        data: JSON.stringify({ message: "Вы уже в этой комнате." }),
+        id: 0,
+      }),
+    );
+    return;
+  }
+
   room.users.push(ws);
 
   console.log(`room.users: ${JSON.stringify(room.users)}`);
