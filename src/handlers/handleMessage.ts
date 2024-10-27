@@ -60,6 +60,7 @@ export function handleMessage(ws: WebSocket, message: any) {
   
         const { gameId: attackGameId, x, y, indexPlayer: attackingPlayer } = attackData;
         handleAttack(attackGameId, x, y, attackingPlayer, ws);
+        console.log(attackGameId, x, y);
         break;
 
 
