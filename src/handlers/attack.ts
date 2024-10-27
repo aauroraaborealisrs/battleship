@@ -17,6 +17,43 @@ function normalizeShips(ships: any[]): Ship[] {
   }));
 }
 
+export const attackedCoordinatesMap = new Map<string, Set<string>>();
+
+export function markAttack(gameId: string, x: number, y: number) {
+  if (!attackedCoordinatesMap.has(gameId)) {
+    attackedCoordinatesMap.set(gameId, new Set());
+  }
+  attackedCoordinatesMap.get(gameId)!.add(`${x},${y}`);
+  console.log(
+    `Attacked cells for ${gameId}:`,
+    JSON.stringify(Array.from(attackedCoordinatesMap.get(gameId)!)),
+  );
+}
+
+export function getRandomAttackCoordinate(gameId: string): {
+  x: number;
+  y: number;
+} {
+  let x, y;
+  do {
+    x = Math.floor(Math.random() * 10);
+    y = Math.floor(Math.random() * 10);
+  } while (attackedCoordinatesMap.get(gameId)?.has(`${x},${y}`));
+
+  console.log(`Random attack coordinate selected: x ${x}, y ${y}`);
+  return { x, y };
+}
+
+export function handleRandomAttack(
+  gameId: string,
+  indexPlayer: string,
+  ws: WebSocket,
+) {
+  const { x, y } = getRandomAttackCoordinate(gameId);
+  markAttack(gameId, x, y);
+  handleAttack(gameId, x, y, indexPlayer, ws);
+}
+
 export default function handleAttack(
   gameId: string,
   x: number,
@@ -36,6 +73,8 @@ export default function handleAttack(
     ws.send(JSON.stringify({ error: "Not your turn", id: 0 }));
     return;
   }
+
+  markAttack(gameId, x, y);
 
   const enemy = game.players.find((p) => p.id !== indexPlayer);
   if (!enemy) {

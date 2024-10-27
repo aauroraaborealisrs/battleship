@@ -1,7 +1,7 @@
 import { createRoom } from "../roomsdb";
 import { addShips } from "./addShips";
 import { addUserToRoom } from "./addUserToRoom";
-import handleAttack from "./attack";
+import handleAttack, { handleRandomAttack } from "./attack";
 import handleRegistration from "./registration";
 
 export function handleMessage(ws: WebSocket, message: any) {
@@ -66,6 +66,23 @@ export function handleMessage(ws: WebSocket, message: any) {
       } = attackData;
       handleAttack(attackGameId, x, y, attackingPlayer, ws);
       console.log(attackGameId, x, y);
+      break;
+
+    case "randomAttack":
+      let randomAttackData;
+      try {
+        randomAttackData =
+          typeof message.data === "string"
+            ? JSON.parse(message.data)
+            : message.data;
+      } catch (error) {
+        console.error("Error parsing random attack data:", error);
+        ws.send(JSON.stringify({ error: "Invalid data format" }));
+        return;
+      }
+      const { gameId: randomGameId, indexPlayer: randomPlayer } =
+        randomAttackData;
+      handleRandomAttack(randomGameId, randomPlayer, ws);
       break;
 
     default:
