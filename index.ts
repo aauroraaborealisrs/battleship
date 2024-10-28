@@ -53,23 +53,30 @@ wss.on("connection", (ws) => {
 
 
       for (const [gameId, gameData] of activeGames.entries()) {
+
         if (gameData.player1 === playerName || gameData.player2 === playerName) {
-          const remainingPlayerName = gameData.player1 === playerName ? gameData.player2 : gameData.player1;
-          console.log(`remainingPlayerName ${remainingPlayerName}`);
+          const remainingPlayerId = gameData.player1 === playerName ? "player_2" : "player_1";
+          const remainingPlayerName = remainingPlayerId === "player_1" ? gameData.player1 : gameData.player2;
+          
+          console.log(`Remaining player is ${remainingPlayerName} as ${remainingPlayerId}`);
+          
           const remainingPlayerData = players.get(remainingPlayerName);
-          updateWinner(gameId, remainingPlayerName === gameData.player1 ? "player_1" : "player_2");
+          updateWinner(gameId, remainingPlayerId);
       
           if (remainingPlayerData) {
             remainingPlayerData.ws.send(
               JSON.stringify({
                 type: "finish",
                 data: JSON.stringify({
-                  winPlayer: remainingPlayerName,
+                  winPlayer: remainingPlayerId,
                 }),
                 id: 0,
               })
             );
           }
+
+          console.log(`я в индексе победитель ${remainingPlayerName}`);
+
   
           activeGames.delete(gameId);
           games.delete(gameId);

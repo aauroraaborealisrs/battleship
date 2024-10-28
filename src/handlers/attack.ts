@@ -185,6 +185,8 @@ export default function handleAttack(
   if (allShipsDestroyed) {
     updateWinner(gameId, indexPlayer);
 
+    console.log(`я в атаке победитель ${indexPlayer}`);
+
     console.log("getPlayersList", getPlayersList());
     game.players.forEach((player) => {
       player.ws.send(
