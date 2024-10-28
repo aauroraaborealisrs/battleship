@@ -4,8 +4,15 @@ import { activeGames } from "./addUserToRoom";
 import generateRandomShips from "./generateRandomShips";
 
 export const mockWebSocket = {
-  send: (data: string) => console.log(`Mock WebSocket send: ${data}`),
-  close: () => console.log("Mock WebSocket closed"),
+  send: (data: string) => {
+    try {
+      const parsedData = JSON.parse(data);
+      console.log(`Server: ${parsedData.type}`);
+    } catch (error) {
+      console.log("Server: invalid data format");
+    }
+  },
+  close: () => console.log("Server closed"),
 } as WebSocket;
 
 export default function initializeGameWithBot(ws: WebSocket, username: string) {
@@ -18,7 +25,6 @@ export default function initializeGameWithBot(ws: WebSocket, username: string) {
     hits: [],
   };
 
-  console.log("botPlayer", botPlayer);
   addPlayer("Bot", "", mockWebSocket);
 
   const userPlayer = {
@@ -45,7 +51,4 @@ export default function initializeGameWithBot(ws: WebSocket, username: string) {
       id: 0,
     }),
   );
-
-  console.log(`Game with Bot created, Game ID: ${gameId}`);
-  console.log(JSON.stringify(games));
 }

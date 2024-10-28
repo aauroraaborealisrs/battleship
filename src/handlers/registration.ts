@@ -7,8 +7,6 @@ export default function handleRegistration(
   ws: WebSocket,
   data: { name: string; password: string } | string,
 ) {
-  console.log("Получены данные для регистрации:", data);
-
   if (typeof data === "string") {
     data = JSON.parse(data) as { name: string; password: string };
   }
@@ -53,7 +51,6 @@ export default function handleRegistration(
 
     const index = `player_${Math.floor(Math.random() * 100000)}`;
     playerInfo.set(ws, { name, index });
-    console.log(`Игрок ${name} успешно зарегистрирован.`);
 
     ws.send(
       JSON.stringify({

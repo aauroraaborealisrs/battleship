@@ -6,6 +6,7 @@ import handleAttack, { handleRandomAttack } from "./attack";
 import handleRegistration from "./registration";
 
 export function handleMessage(ws: WebSocket, message: any) {
+  console.log(`Client ${message.type}`);
   switch (message.type) {
     case "reg":
       handleRegistration(ws, message.data);
@@ -23,6 +24,8 @@ export function handleMessage(ws: WebSocket, message: any) {
       } catch (error) {
         console.error("Error parsing message data:", error);
         ws.send(JSON.stringify({ error: "Invalid data format" }));
+        console.log("Server error");
+
         return;
       }
       addUserToRoom(data.indexRoom, ws);
@@ -38,11 +41,12 @@ export function handleMessage(ws: WebSocket, message: any) {
       } catch (error) {
         console.error("Error parsing message data:", error);
         ws.send(JSON.stringify({ error: "Invalid data format" }));
+        console.log("Server error");
+
         return;
       }
 
       const { gameId, ships, indexPlayer } = shipData;
-      console.log(gameId, indexPlayer);
       addShips(gameId, ships, indexPlayer, ws);
       break;
 
@@ -56,6 +60,8 @@ export function handleMessage(ws: WebSocket, message: any) {
       } catch (error) {
         console.error("Error parsing attack data:", error);
         ws.send(JSON.stringify({ error: "Invalid data format" }));
+        console.log("Server error");
+
         return;
       }
 
@@ -66,7 +72,6 @@ export function handleMessage(ws: WebSocket, message: any) {
         indexPlayer: attackingPlayer,
       } = attackData;
       handleAttack(attackGameId, x, y, attackingPlayer, ws);
-      console.log(attackGameId, x, y);
       break;
 
     case "randomAttack":
@@ -79,6 +84,8 @@ export function handleMessage(ws: WebSocket, message: any) {
       } catch (error) {
         console.error("Error parsing random attack data:", error);
         ws.send(JSON.stringify({ error: "Invalid data format" }));
+        console.log("Server error");
+
         return;
       }
       const { gameId: randomGameId, indexPlayer: randomPlayer } =
@@ -88,5 +95,6 @@ export function handleMessage(ws: WebSocket, message: any) {
 
     default:
       ws.send(JSON.stringify({ error: "Unknown command type" }));
+      console.log("Server error");
   }
 }

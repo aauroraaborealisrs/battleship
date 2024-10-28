@@ -12,7 +12,7 @@ export function createRoom(ws: WebSocket) {
   const roomId = generateRoomId();
   rooms.set(roomId, { users: [ws] });
 
-  console.log(`ROOMS: ${JSON.stringify(rooms)}`);
+  console.log("Server create_room");
 
   ws.send(
     JSON.stringify({
@@ -46,9 +46,6 @@ export function notifyRoomUpdate() {
     data: JSON.stringify(getRoomsList()),
     id: 0,
   });
-
-  console.log(roomData);
-  console.log(`ROOMS: ${JSON.stringify(getRoomsList())}`);
 
   players.forEach(({ ws }) => {
     if (ws.readyState === ws.OPEN) {

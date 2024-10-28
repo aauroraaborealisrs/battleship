@@ -28,10 +28,6 @@ export function markAttack(gameId: string, x: number, y: number) {
     attackedCoordinatesMap.set(gameId, new Set());
   }
   attackedCoordinatesMap.get(gameId)!.add(`${x},${y}`);
-  console.log(
-    `Attacked cells for ${gameId}:`,
-    JSON.stringify(Array.from(attackedCoordinatesMap.get(gameId)!)),
-  );
 }
 
 export function getRandomAttackCoordinate(gameId: string): {
@@ -44,7 +40,6 @@ export function getRandomAttackCoordinate(gameId: string): {
     y = Math.floor(Math.random() * 10);
   } while (attackedCoordinatesMap.get(gameId)?.has(`${x},${y}`));
 
-  console.log(`Random attack coordinate selected: x ${x}, y ${y}`);
   return { x, y };
 }
 
@@ -67,14 +62,16 @@ export default function handleAttack(
 ) {
   const game = games.get(gameId);
   if (!game) {
-    console.log(`[Error] Game with ID ${gameId} not found.`);
     ws.send(JSON.stringify({ error: "Game not found", id: 0 }));
+    console.log("Server error");
+
     return;
   }
 
   if (game.currentTurn !== indexPlayer) {
-    console.log(`[Info] Not ${indexPlayer}'s turn.`);
     ws.send(JSON.stringify({ error: "Not your turn", id: 0 }));
+    console.log("Server error");
+
     return;
   }
 
@@ -82,25 +79,14 @@ export default function handleAttack(
 
   const enemy = game.players.find((p) => p.id !== indexPlayer);
   if (!enemy) {
-    console.log(
-      `[Error] Enemy not found for player ${indexPlayer} in game ${gameId}.`,
-    );
     return;
   }
 
   const ships: Ship[] = normalizeShips(enemy.ships);
   let status: "miss" | "shot" | "killed" = "miss";
 
-  console.log(
-    `[Info] Processing attack at (${x}, ${y}) by ${indexPlayer} against ${enemy.id}`,
-  );
-
   for (const ship of ships) {
     const { x: startX, y: startY } = ship.position;
-    console.log(`SHIP ${JSON.stringify(ship)}`);
-    console.log(
-      `[Debug] Checking ship at (${startX}, ${startY}) with length ${ship.length} and direction ${ship.direction}`,
-    );
 
     const isVertical = ship.direction;
     let hit = false;
@@ -108,12 +94,10 @@ export default function handleAttack(
     for (let i = 0; i < ship.length; i++) {
       const shipX = isVertical ? startX : startX + i;
       const shipY = isVertical ? startY + i : startY;
-      console.log(`[Debug] Checking segment at (${shipX}, ${shipY})`);
 
       if (shipX === x && shipY === y) {
         hit = true;
         status = "shot";
-        console.log(`[Info] Hit confirmed on segment at (${shipX}, ${shipY})`);
 
         enemy.hits.push({ x: shipX, y: shipY });
 
@@ -128,13 +112,14 @@ export default function handleAttack(
 
         if (allSegmentsHit) {
           status = "killed";
-          console.log(`[Info] Ship destroyed at (${startX}, ${startY})`);
 
           for (let i = 0; i < ship.length; i++) {
             const killedX = isVertical ? startX : startX + i;
             const killedY = isVertical ? startY + i : startY;
 
             game.players.forEach((player) => {
+              console.log("Server attack");
+
               player.ws.send(
                 JSON.stringify({
                   type: "attack",
@@ -151,6 +136,7 @@ export default function handleAttack(
           markSurroundingCellsAsShot(ship, game, indexPlayer);
         } else {
           game.players.forEach((player) => {
+            console.log("Server attack");
             player.ws.send(
               JSON.stringify({
                 type: "attack",
@@ -186,10 +172,9 @@ export default function handleAttack(
   if (allShipsDestroyed) {
     updateWinner(gameId, indexPlayer);
 
-    console.log(`я в атаке победитель ${indexPlayer}`);
-
-    console.log("getPlayersList", getPlayersList());
     game.players.forEach((player) => {
+      console.log("Server finish");
+
       player.ws.send(
         JSON.stringify({
           type: "finish",
@@ -206,6 +191,8 @@ export default function handleAttack(
   }
 
   game.players.forEach((player) => {
+    console.log("Server attack");
+
     player.ws.send(
       JSON.stringify({
         type: "attack",
@@ -219,15 +206,12 @@ export default function handleAttack(
     );
   });
 
-  console.log(
-    `[Info] Attack result: ${status} by ${indexPlayer} at (${x}, ${y})`,
-  );
-
   if (status === "miss") {
     game.currentTurn = enemy.id;
   }
 
   game.players.forEach((player) => {
+    console.log("Server turn");
     player.ws.send(
       JSON.stringify({
         type: "turn",
@@ -238,8 +222,6 @@ export default function handleAttack(
       }),
     );
   });
-
-  console.log(`[Info] Next turn: ${game.currentTurn}`);
 
   if (
     game.currentTurn === "player_2" &&

@@ -14,7 +14,6 @@ const HTTP_PORT = 3000;
 export const wss = new WebSocketServer({ server: httpServer });
 
 wss.on("connection", (ws) => {
-  console.log("New client connected");
 
   ws.on("message", (data) => {
     try {
@@ -26,7 +25,6 @@ wss.on("connection", (ws) => {
       );
   
       if (message.type === "single_play" && !message.data) {
-        console.log("Received single_play command with empty data.");
         initializeSinglePlayerGame(ws, "Bot");
       } else if (!isBotGame) {
         handleMessage(ws, message);
@@ -39,36 +37,7 @@ wss.on("connection", (ws) => {
       ws.send(JSON.stringify({ error: "Invalid message format" }));
     }
   });
-  
-  // ws.on("message", (data) => {
-  //   try {
-  //     const message = JSON.parse(data.toString());
-  
-  //     // Проверка, является ли игра с ботом и привязана ли она к текущему WebSocket
-  //     const isBotGameForCurrentWs = Array.from(activeGames.entries()).some(
-  //       ([gameId, game]) =>
-  //         (game.player2 === "Bot" && gameId === gameId && game.player1 === ws) ||
-  //         (game.player1 === ws && game.player2 === "Bot")
-  //     );
 
-  //     console.log(isBotGameForCurrentWs);
-      
-      
-  
-  //     if (message.type === "single_play" && !message.data) {
-  //       console.log("Received single_play command with empty data.");
-  //       initializeSinglePlayerGame(ws, "Bot");
-  //     } else if (!isBotGameForCurrentWs) {
-  //       handleMessage(ws, message);
-  //     } else {
-  //       handleBotMessage(ws, message);
-  //     }
-  //   } catch (error) {
-  //     console.error("Message parsing error:", error);
-  //     ws.send(JSON.stringify({ error: "Invalid message format" }));
-  //   }
-  // });
-  
 
   ws.on("close", () => {
     const playerEntry = Array.from(players.entries()).find(
@@ -76,22 +45,17 @@ wss.on("connection", (ws) => {
     );
   
     if (playerEntry) {
-      const [playerName] = playerEntry;
-      console.log(`Client ${playerName} disconnected`);
-      
+      const [playerName] = playerEntry;      
       players.delete(playerName);
-      console.log(getPlayersList());
       updateWinners();
 
       for (const [roomId, roomData] of rooms.entries()) {
         const index = roomData.users.indexOf(ws);
         if (index !== -1) {
           roomData.users.splice(index, 1);
-          console.log(`Removed disconnected user from room ${roomId}`);
           
           if (roomData.users.length === 0) {
             rooms.delete(roomId);
-            console.log(`Room ${roomId} deleted as it is empty`);
           }
         }
       }
@@ -102,12 +66,12 @@ wss.on("connection", (ws) => {
           const remainingPlayerId = gameData.player1 === playerName ? "player_2" : "player_1";
           const remainingPlayerName = remainingPlayerId === "player_1" ? gameData.player1 : gameData.player2;
           
-          console.log(`Remaining player is ${remainingPlayerName} as ${remainingPlayerId}`);
           
           const remainingPlayerData = players.get(remainingPlayerName);
           updateWinner(gameId, remainingPlayerId);
       
           if (remainingPlayerData) {
+            console.log('Server finish');
             remainingPlayerData.ws.send(
               JSON.stringify({
                 type: "finish",
@@ -119,11 +83,9 @@ wss.on("connection", (ws) => {
             );
           }
 
-          console.log(`я в индексе победитель ${remainingPlayerName}`);
   
           activeGames.delete(gameId);
           games.delete(gameId);
-          console.log(`Game ${gameId} ended due to player disconnect`);
         }
       }
       
@@ -134,10 +96,9 @@ wss.on("connection", (ws) => {
 });
 
 export const terminateServer = () => {
-  console.log("Initiating server termination...");
+  console.log("Server: termination");
   wss.clients.forEach((client) => client.readyState === client.OPEN && client.close());
   wss.close(() => {
-    console.log("WebSocket server successfully terminated.");
     process.exit(0);
   });
 };
