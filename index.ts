@@ -7,6 +7,8 @@ import { notifyRoomUpdate, rooms } from "./src/roomsdb";
 import { activeGames } from "./src/handlers/addUserToRoom";
 import { games } from "./src/handlers/addShips";
 import { updateWinner } from "./src/utils/updateWinner";
+import initializeSinglePlayerGame from "./src/handlers/initializeSinglePlayerGame";
+import { handleBotMessage } from "./src/handlers/handleBotMessage";
 
 const HTTP_PORT = 3000;
 export const wss = new WebSocketServer({ server: httpServer });
@@ -17,13 +19,56 @@ wss.on("connection", (ws) => {
   ws.on("message", (data) => {
     try {
       const message = JSON.parse(data.toString());
-      console.log("Message received:", message);
-      handleMessage(ws, message);
+  
+      
+      const isBotGame = Array.from(activeGames.values()).some(
+        (game) => game.player2 === "Bot" || game.player1 === "Bot"
+      );
+  
+      if (message.type === "single_play" && !message.data) {
+        console.log("Received single_play command with empty data.");
+        initializeSinglePlayerGame(ws, "Bot");
+      } else if (!isBotGame) {
+        handleMessage(ws, message);
+      } else {
+        handleBotMessage(ws, message);
+
+      }
     } catch (error) {
       console.error("Message parsing error:", error);
       ws.send(JSON.stringify({ error: "Invalid message format" }));
     }
   });
+  
+  // ws.on("message", (data) => {
+  //   try {
+  //     const message = JSON.parse(data.toString());
+  
+  //     // Проверка, является ли игра с ботом и привязана ли она к текущему WebSocket
+  //     const isBotGameForCurrentWs = Array.from(activeGames.entries()).some(
+  //       ([gameId, game]) =>
+  //         (game.player2 === "Bot" && gameId === gameId && game.player1 === ws) ||
+  //         (game.player1 === ws && game.player2 === "Bot")
+  //     );
+
+  //     console.log(isBotGameForCurrentWs);
+      
+      
+  
+  //     if (message.type === "single_play" && !message.data) {
+  //       console.log("Received single_play command with empty data.");
+  //       initializeSinglePlayerGame(ws, "Bot");
+  //     } else if (!isBotGameForCurrentWs) {
+  //       handleMessage(ws, message);
+  //     } else {
+  //       handleBotMessage(ws, message);
+  //     }
+  //   } catch (error) {
+  //     console.error("Message parsing error:", error);
+  //     ws.send(JSON.stringify({ error: "Invalid message format" }));
+  //   }
+  // });
+  
 
   ws.on("close", () => {
     const playerEntry = Array.from(players.entries()).find(
@@ -51,7 +96,6 @@ wss.on("connection", (ws) => {
         }
       }
 
-
       for (const [gameId, gameData] of activeGames.entries()) {
 
         if (gameData.player1 === playerName || gameData.player2 === playerName) {
@@ -76,7 +120,6 @@ wss.on("connection", (ws) => {
           }
 
           console.log(`я в индексе победитель ${remainingPlayerName}`);
-
   
           activeGames.delete(gameId);
           games.delete(gameId);

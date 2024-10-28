@@ -7,6 +7,8 @@ export function updateWinners() {
     id: 0,
   });
 
+  console.log(JSON.stringify(getWinnersList()));
+
   players.forEach(({ ws }) => {
     if (ws.readyState === ws.OPEN) {
       ws.send(winnersData);

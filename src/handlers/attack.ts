@@ -2,6 +2,7 @@ import { getPlayersList } from "../playersdb";
 import { updateWinner } from "../utils/updateWinner";
 import { games } from "./addShips";
 import { activeGames } from "./addUserToRoom";
+import { mockWebSocket } from "./initializeSinglePlayerGame";
 import markSurroundingCellsAsShot from "./markSurroundingCellsAsShot";
 
 export interface Ship {
@@ -239,4 +240,14 @@ export default function handleAttack(
   });
 
   console.log(`[Info] Next turn: ${game.currentTurn}`);
+
+  if (
+    game.currentTurn === "player_2" &&
+    activeGames.get(gameId)?.player2 === "Bot"
+  ) {
+    setTimeout(
+      () => handleRandomAttack(gameId, "player_2", mockWebSocket),
+      500,
+    );
+  }
 }
